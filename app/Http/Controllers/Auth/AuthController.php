@@ -26,7 +26,7 @@ class AuthController extends Controller
                 'errors'=> [
                     'name' => ['The provided credentials are incorrect.'],
                 ]
-            ], 402);
+            ], 422);
         }
         return response()->json([
             'session' => 'success',

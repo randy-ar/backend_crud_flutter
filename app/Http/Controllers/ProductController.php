@@ -7,6 +7,8 @@ use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class ProductController extends Controller
 {
@@ -29,7 +31,7 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required|min:3',
             'price' => 'required|numeric|min:1',
-            'description' => 'required|min:10',
+            'description' => 'nullable|min:10',
             'image' => 'nullable|file|mimes:jpg,png,jpeg,gif|max:8048',
         ]);
 
@@ -42,7 +44,19 @@ class ProductController extends Controller
             $file = $request->file('image');
             $filename = time().'.'.$file->getClientOriginalExtension();
             $path = public_path('images/products');
-            $file->move($path, $filename);
+
+            // Buat instance manager dengan driver GD
+            $manager = new ImageManager(new Driver());
+            
+            // Baca gambar dari file yang diunggah
+            $img = $manager->read($file);
+
+            // Ubah ukuran gambar menjadi 200x200px
+            $img->resize(200, 200);
+
+            // Simpan gambar yang telah diubah ukurannya
+            $img->save($path .'/'. $filename);
+
             $product->image = 'images/products/' . $filename;
         }else{
             $product->image = 'placeholder.jpg';
@@ -92,7 +106,7 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required|min:3',
             'price' => 'required|numeric|min:1',
-            'description' => 'required|min:10',
+            'description' => 'nullable|min:10',
             'image' => 'nullable|file|mimes:jpeg,png,jpg,gif|max:2048', // Optional image update
         ]);
 
@@ -111,7 +125,19 @@ class ProductController extends Controller
                 $file = $request->file('image');
                 $filename = time() . '.' . $file->getClientOriginalExtension();
                 $path = public_path('images/products');
-                $file->move($path, $filename);
+
+                // Buat instance manager dengan driver GD
+                $manager = new ImageManager(new Driver());
+                
+                // Baca gambar dari file yang diunggah
+                $img = $manager->read($file);
+
+                // Ubah ukuran gambar menjadi 200x200px
+                $img->resize(200, 200);
+
+                // Simpan gambar yang telah diubah ukurannya
+                $img->save($path .'/'. $filename);
+
                 $product->image = 'images/products/' . $filename;
             }
         }
@@ -134,7 +160,7 @@ class ProductController extends Controller
         if (!$product) {
             return response()->json([
                 'session' => 'error',
-                'message' => 'Product not found.'
+                'message' => 'Product not found.',
             ], 404);
         }
 
